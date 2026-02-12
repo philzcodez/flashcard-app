@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var  flashcards: [Flashcard] = sampleFlashcards
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -14,7 +15,7 @@ struct HomeView: View {
                 Text("Your study starts here.")
                     .foregroundStyle(.secondary)
                 NavigationLink("Go to Flashcards") {
-                    FlashcardsView()
+                    FlashcardsView(flashcards: $flashcards)
                 }
                     .buttonStyle(.borderedProminent)
                 NavigationLink("Create a New Card") {

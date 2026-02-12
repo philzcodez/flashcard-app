@@ -7,24 +7,42 @@
 
 import SwiftUI
 
-let sampleFlashcards = [
-    Flashcard(question: "What is 2 + 2?", answer: "4"),
-    Flashcard(question: "Capital of France", answer: "paris"),
-    Flashcard(question: "What language is this app written in", answer: "Swift")
-]
 
 struct FlashcardsView: View {
+    @Binding private var flashcards: [Flashcard]
+    @State private var showAddCard = false
+    
+    //Explicit initializer
+    init(flashcards: Binding <[Flashcard]>) {
+        self._flashcards = flashcards
+    }
+    
     var body: some View {
-        List(sampleFlashcards) {card in
-            FlashcardRow(flashcard: card)
-                .listRowSeparator(.hidden)
-                .padding(.vertical,4)
+        List {
+            ForEach(flashcards) { card in
+                FlashcardRow(flashcard: card)
+            }
+            .onDelete(perform: deleteFlashcards)
         }
-        .listStyle(.insetGrouped)
         .navigationTitle("Flashcards")
+        .toolbar {
+            Button {
+                showAddCard = true
+            } label: {
+                Image(systemName: "plus")
+            }
+            
+            EditButton()
+        }
+        .sheet(isPresented: $showAddCard) {
+            AddFlashcardView(flashcards: $flashcards)
+        }
+    }
+    private func deleteFlashcards(at offsets: IndexSet) {
+        flashcards.remove(atOffsets: offsets)
     }
 }
 
 #Preview {
-    FlashcardsView()
+    FlashcardsView(flashcards: .constant(sampleFlashcards))
 }
