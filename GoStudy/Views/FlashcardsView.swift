@@ -16,17 +16,12 @@ let sampleFlashcards = [
 struct FlashcardsView: View {
     var body: some View {
         List(sampleFlashcards) {card in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(card.question)
-                    .font(.headline)
-                Text(card.answer)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(4)
-            
+            FlashcardRow(flashcard: card)
+                .listRowSeparator(.hidden)
+                .padding(.vertical,4)
         }
-        .navigationTitle(Text("Flashcards"))
+        .listStyle(.insetGrouped)
+        .navigationTitle("Flashcards")
     }
 }
 
