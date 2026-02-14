@@ -44,7 +44,7 @@ struct AddFlashcardView: View {
     }
     
     private func saveFlashcard() {
-        let newCard = Flashcard(question: question, answer: answer)
+        let newCard = Flashcard(id: UUID(), question: question, answer: answer)
         flashcards.append(newCard)
         dismiss()
     }

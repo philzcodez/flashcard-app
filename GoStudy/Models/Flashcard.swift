@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct Flashcard: Identifiable {
-    let id = UUID()
+struct Flashcard: Identifiable, Codable, Equatable {
+    let id: UUID
     let question: String
     let answer: String
 }
 
 let sampleFlashcards: [Flashcard] = [
-    Flashcard(question: "What is 2 + 2?", answer: "4"),
-    Flashcard(question: "Capital of France?", answer: "Paris"),
-    Flashcard(question: "What is SwiftUI?", answer: "Apple's UI framework")
+    Flashcard(id: UUID(), question: "What is 2 + 2?", answer: "4"),
+    Flashcard(id: UUID(), question: "Capital of France?", answer: "Paris"),
+    Flashcard(id: UUID(), question: "What is SwiftUI?", answer: "Apple's UI framework")
 ]

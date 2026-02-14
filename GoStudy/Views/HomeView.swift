@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var  flashcards: [Flashcard] = sampleFlashcards
+    private let store = FlashcardStore()
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -25,6 +26,12 @@ struct HomeView: View {
             }
             .padding()
             .navigationTitle("Home")
+            .onAppear {
+                flashcards = store.load()
+            }
+            .onChange(of: flashcards) {_, newValue in
+                store.save(newValue)
+            }
         }
     }
 }
