@@ -9,32 +9,25 @@ import SwiftUI
 
 struct FlashcardRow: View {
     let flashcard: Flashcard
-    @State private var showAnswer = false
+    @State private var isFlipped = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(showAnswer ? flashcard.answer: flashcard.question)
+            Text(isFlipped ? flashcard.answer: flashcard.question)
                 .font(.headline)
-                .multilineTextAlignment(.leading)
-                .lineLimit(nil)
+                .foregroundStyle(.primary)
             
-            Text("Tap to flip")
+            Text(isFlipped ? "Answer" : "Question")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(.regularMaterial)
-        .cornerRadius(10)
-        .shadow(radius: 1, x:0, y:1)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.thinMaterial)
+        .cornerRadius(12)
         .onTapGesture {
-            withAnimation(.spring()) {
-                showAnswer.toggle()
-            }
+            isFlipped.toggle()
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityLabel(showAnswer ? "Answer: \(flashcard.answer)" : "Question: \(flashcard.question)")
-        .accessibilityHint("Tap to flip between question and answer")
     }
 }
 
