@@ -13,6 +13,9 @@ struct FlashcardsView: View {
     @State private var showAddCard = false
     @State private var currentIndex = 0
     @State private var isFlipped = false
+    @State private var showDeleteAlert = false
+    
+    let haptic = UIImpactFeedbackGenerator(style: .light)
     
     //Explicit initializer
     init(flashcards: Binding <[Flashcard]>) {
@@ -68,8 +71,10 @@ struct FlashcardsView: View {
                 Button(isLastCard ? "Done" : "Next") {
                     if isLastCard {
                         resetAndShuffle()
+                        haptic.impactOccurred()
                     } else {
-                        currentIndex+=1
+                        currentIndex += 1
+                        haptic.impactOccurred()
                     }
                 }
                 .font(.subheadline)
@@ -80,9 +85,20 @@ struct FlashcardsView: View {
             }
             .padding(.horizontal)
         }
+        .alert("Delete this card?", isPresented: $showDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                deleteCurrentCard()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This action cannot be undone.")
+        }
         .animation(.easeInOut, value: currentIndex)
         .onChange(of: currentIndex) {_, _ in
             isFlipped = false
+        }
+        .onChange(of: flashcards){ _, _ in
+            clampIndex()
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Flashcards")
@@ -99,18 +115,43 @@ struct FlashcardsView: View {
                 Image(systemName: "shuffle")
             }
             
+            Button(role: .destructive) {
+                showDeleteAlert = true
+            } label : {
+                Image(systemName: "trash")
+            }
+            .disabled(flashcards.isEmpty)
+            
             EditButton()
         }
         .sheet(isPresented: $showAddCard) {
             AddFlashcardView(flashcards: $flashcards)
         }
     }
-    private func deleteFlashcards(at offsets: IndexSet) {
-        flashcards.remove(atOffsets: offsets)
+    private func deleteCurrentCard() {
+        guard !flashcards.isEmpty else {return}
+        
+        flashcards.remove(at: currentIndex)
+        clampIndex()
+        isFlipped = false
+        haptic.impactOccurred()
     }
+    
+    private func clampIndex() {
+        if flashcards.isEmpty {
+            currentIndex = 0
+        } else if currentIndex < 0 {
+            currentIndex = 0
+        } else if currentIndex >= flashcards.count {
+            currentIndex = flashcards.count - 1
+        }
+    }
+    
     private func resetAndShuffle() {
         flashcards.shuffle()
         currentIndex = 0
+        isFlipped = false
+        haptic.impactOccurred()
     }
 }
 
