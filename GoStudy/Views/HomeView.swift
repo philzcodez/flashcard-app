@@ -13,14 +13,10 @@ struct HomeView: View {
                 Text("Welcome to GoStudy")
                     .font(.title)
                     .fontWeight(.semibold)
-                Text("Your study starts here.")
+                Text("Your studying starts here.")
                     .foregroundStyle(.secondary)
-                NavigationLink("Go to Flashcards") {
+                NavigationLink("Enter") {
                     FlashcardsView(flashcards: $flashcards)
-                }
-                    .buttonStyle(.borderedProminent)
-                NavigationLink("Create a New Card") {
-                    CreateCardView()
                 }
                     .buttonStyle(.borderedProminent)
             }

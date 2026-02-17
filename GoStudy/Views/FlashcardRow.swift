@@ -10,51 +10,86 @@ import SwiftUI
 struct FlashcardRow: View {
     let flashcard: Flashcard
     @Binding var isFlipped: Bool
+    let haptic = UIImpactFeedbackGenerator(style: .medium)
+    
+    private var rotation: Double {
+        isFlipped ? 180 : 0
+    }
     
     var body: some View {
         ZStack{
-            // FRONT
-            VStack(alignment: .leading, spacing: 6) {
-                Text(flashcard.question)
-                    .font(.headline)
-                    .multilineTextAlignment(.leading)
-                Text("Tap to reveal")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            if isFlipped {
+                backView
+            } else {
+                frontView
             }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity)
-            .frame(height: 250)
-            .background(.regularMaterial)
-            .cornerRadius(12)
-            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-            .opacity(isFlipped ? 0 : 1)
-            
-            // BACK
-            VStack(alignment: .leading, spacing: 6) {
-                Text(flashcard.answer)
-                    .font(.headline)
-                    .multilineTextAlignment(.leading)
-                Text("Answer")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity)
-            .frame(height: 250)
-            .background(.regularMaterial)
-            .cornerRadius(12)
-            .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-            .opacity(isFlipped ? 1 : 0)
         }
+        .rotation3DEffect(
+            .degrees(rotation),
+            axis: (x: 0, y: 1, z:0)
+        )
+        .animation(.easeInOut(duration: 0.5), value: isFlipped)
         .onTapGesture{
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                isFlipped.toggle()
-            }
+            isFlipped.toggle()
+            haptic.impactOccurred()
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityLabel (isFlipped ? "Answer: \(flashcard.answer)" : "Question: \(flashcard.question)")
     }
+    
+    
+    private var frontView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(flashcard.question)
+                .font(.headline)
+            Text("Tap to reveal")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: 500, minHeight: 250)
+        .background(.regularMaterial)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+    }
+    
+    private var backView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(flashcard.answer)
+                .font(.headline)
+            Text("Answer")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: 500, minHeight: 250)
+        .background(.regularMaterial)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+    }
+    
+    
+    private func cardFace(text: String, subtitle: String) -> some View {
+        VStack(spacing: 12) {
+            Spacer()
+            
+            Text(text)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+            
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+        }
+        .padding(24)
+        .frame(maxWidth: 500)
+        .frame(height: 260)
+        .background(.ultraThinMaterial)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+    }
+    
 }
 

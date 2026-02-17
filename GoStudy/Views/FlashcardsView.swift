@@ -18,6 +18,11 @@ struct FlashcardsView: View {
     init(flashcards: Binding <[Flashcard]>) {
         self._flashcards = flashcards
     }
+    
+    private var isLastCard: Bool {
+        currentIndex == totalCards - 1
+    }
+    
     private var totalCards: Int {
         flashcards.count
     }
@@ -40,6 +45,7 @@ struct FlashcardsView: View {
             if !flashcards.isEmpty {
                 FlashcardRow(flashcard: flashcards[currentIndex], isFlipped: $isFlipped)
                     .id(currentIndex)
+                    .padding(.vertical, 24)
             } else {
                 Text("No flashcards yet")
                     .foregroundStyle(.secondary)
@@ -51,19 +57,30 @@ struct FlashcardsView: View {
                         currentIndex -= 1
                     }
                 }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(currentIndex == 0)
                 
                 Spacer()
                 
-                Button("Next") {
-                    if currentIndex < totalCards - 1 {
-                        currentIndex += 1
+                Button(isLastCard ? "Done" : "Next") {
+                    if isLastCard {
+                        resetAndShuffle()
+                    } else {
+                        currentIndex+=1
                     }
                 }
-                .disabled(currentIndex >= totalCards - 1)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(flashcards.isEmpty)
             }
             .padding(.horizontal)
         }
+        .animation(.easeInOut, value: currentIndex)
         .onChange(of: currentIndex) {_, _ in
             isFlipped = false
         }
