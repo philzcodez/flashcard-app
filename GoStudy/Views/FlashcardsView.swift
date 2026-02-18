@@ -14,6 +14,9 @@ struct FlashcardsView: View {
     @State private var currentIndex = 0
     @State private var isFlipped = false
     @State private var showDeleteAlert = false
+    @State private var isFocusMode = true
+    
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     let haptic = UIImpactFeedbackGenerator(style: .light)
     
@@ -49,6 +52,8 @@ struct FlashcardsView: View {
                 FlashcardRow(flashcard: flashcards[currentIndex], isFlipped: $isFlipped)
                     .id(currentIndex)
                     .padding(.vertical, 24)
+                    .scaleEffect(isFocusMode ? 1.05 : 1.0)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: isFocusMode)
             } else {
                 Text("No flashcards yet")
                     .foregroundStyle(.secondary)
@@ -101,28 +106,41 @@ struct FlashcardsView: View {
             clampIndex()
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Flashcards")
+        .navigationTitle(isFocusMode ? "" : "Flashcards")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Button {
-                showAddCard = true
-            } label: {
-                Image(systemName: "plus")
+            if !isFocusMode {
+                Button {
+                    showAddCard = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Add flashcard")
+                
+                Button {
+                    resetAndShuffle()
+                } label: {
+                    Image(systemName: "shuffle")
+                }
+                .accessibilityLabel("Shuffle flashcards")
+                
+                Button(role: .destructive) {
+                    showDeleteAlert = true
+                } label : {
+                    Image(systemName: "trash")
+                }
+                .disabled(flashcards.isEmpty)
+                .accessibilityLabel("Delete current flashcard")
             }
             
             Button {
-                resetAndShuffle()
+                withAnimation {
+                    isFocusMode.toggle()
+                }
             } label: {
-                Image(systemName: "shuffle")
+                Image(systemName: isFocusMode ? "eye.slash" : "eye")
             }
-            
-            Button(role: .destructive) {
-                showDeleteAlert = true
-            } label : {
-                Image(systemName: "trash")
-            }
-            .disabled(flashcards.isEmpty)
-            
-            EditButton()
+            .accessibilityLabel(isFocusMode ? "Exit focus mode" : "Enter focus mode")
         }
         .sheet(isPresented: $showAddCard) {
             AddFlashcardView(flashcards: $flashcards)

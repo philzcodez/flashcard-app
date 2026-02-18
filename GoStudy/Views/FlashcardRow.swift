@@ -12,6 +12,8 @@ struct FlashcardRow: View {
     @Binding var isFlipped: Bool
     let haptic = UIImpactFeedbackGenerator(style: .medium)
     
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    
     private var rotation: Double {
         isFlipped ? 180 : 0
     }
@@ -24,11 +26,16 @@ struct FlashcardRow: View {
                 frontView
             }
         }
+        .accessibilityLabel(
+            isFlipped
+            ? "Answer: \(flashcard.answer)"
+            : "Question: \(flashcard.question)"
+        )
         .rotation3DEffect(
             .degrees(rotation),
             axis: (x: 0, y: 1, z:0)
         )
-        .animation(.easeInOut(duration: 0.5), value: isFlipped)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.5), value: isFlipped)
         .onTapGesture{
             isFlipped.toggle()
             haptic.impactOccurred()
