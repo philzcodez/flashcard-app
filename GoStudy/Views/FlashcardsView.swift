@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 
 struct FlashcardsView: View {
@@ -17,6 +18,11 @@ struct FlashcardsView: View {
     @State private var isFocusMode = true
     @State private var sessionStartTime = Date()
     @State private var sessionCardsStudied = 0
+    @State private var sessions: [StudySession] = []
+    @State private var elapsedSeconds = 0
+    @State private var timerRunning = false
+    
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
@@ -47,12 +53,109 @@ struct FlashcardsView: View {
         guard totalCards > 0 else { return 0 }
         return Double(currentIndex + 1) / Double(totalCards)
     }
+    
+
+    private var addButton: some View {
+        Button {
+            showAddCard = true
+        } label: {
+            Image(systemName: "plus")
+        }
+        .accessibilityLabel("Add flashcard")
+    }
+
+    private var shuffleButton: some View {
+        Button {
+            resetAndShuffle()
+        } label: {
+            Image(systemName: "shuffle")
+        }
+        .accessibilityLabel("Shuffle flashcards")
+    }
+
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            showDeleteAlert = true
+        } label: {
+            Image(systemName: "trash")
+        }
+        .disabled(flashcards.isEmpty)
+        .accessibilityLabel("Delete current flashcard")
+    }
+
+    private var restartButton: some View {
+        Button {
+            withAnimation {
+                currentIndex = 0
+                isFlipped = false
+                sessionCardsStudied = 0
+                sessionStartTime = Date()
+                elapsedSeconds = 0
+                timerRunning = true
+            }
+        } label: {
+            Image(systemName: "arrow.counterclockwise")
+        }
+        .disabled(flashcards.isEmpty)
+        .accessibilityLabel("Restart session")
+    }
+
+    private var repeatButton: some View {
+        Button {
+            withAnimation {
+                currentIndex = 0
+                isFlipped = false
+                sessionCardsStudied = 0
+                sessionStartTime = Date()
+            }
+        } label: {
+            Image(systemName: "repeat")
+        }
+        .disabled(flashcards.isEmpty)
+        .accessibilityLabel("Repeat current session")
+    }
+
+    private func advanceCard() {
+        if isLastCard {
+            //Log session
+            let completedSession = StudySession(
+                startTime: sessionStartTime,
+                endTime: Date(),
+                cardsStudied: sessionCardsStudied + 1
+            )
+            sessions.append(completedSession)
+            
+            resetAndShuffle()
+            sessionCardsStudied = 0
+            sessionStartTime = Date()
+            haptic.impactOccurred()
+        } else {
+            currentIndex += 1
+            haptic.impactOccurred()
+            sessionCardsStudied += 1
+        }
+    }
+    
+    private var currentFlashcardView: some View {
+        FlashcardRow(flashcard: flashcards[currentIndex], isFlipped: $isFlipped)
+            .padding(.vertical, 24)
+            .scaleEffect(isFocusMode ? 1.05 : 1.0)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: isFocusMode)
+    }
+    
     var body: some View {
         VStack(spacing: 16) {
             //Progress text
             Text("Card \(currentIndex + 1) of \(totalCards)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            
+            Text("Time: \(elapsedSeconds) sec")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .onReceive(timer) { _ in
+                    if timerRunning { elapsedSeconds += 1}
+                }
             
             HStack {
                 Text("Studied: \(cardsStudied)")
@@ -72,11 +175,7 @@ struct FlashcardsView: View {
                 .padding(.horizontal)
             
             if !flashcards.isEmpty {
-                FlashcardRow(flashcard: flashcards[currentIndex], isFlipped: $isFlipped)
-                    .id(currentIndex)
-                    .padding(.vertical, 24)
-                    .scaleEffect(isFocusMode ? 1.05 : 1.0)
-                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: isFocusMode)
+                currentFlashcardView
             } else {
                 Text("No flashcards yet")
                     .foregroundStyle(.secondary)
@@ -96,23 +195,18 @@ struct FlashcardsView: View {
                 
                 Spacer()
                 
-                Button(isLastCard ? "Done" : "Next") {
-                    if isLastCard {
-                        resetAndShuffle()
-                        haptic.impactOccurred()
-                        sessionCardsStudied = 0
-                        sessionStartTime = Date()
-                    } else {
-                        currentIndex += 1
-                        haptic.impactOccurred()
-                        sessionCardsStudied += 1
-                    }
+                Button(isLastCard ? "Done" : "Next"){
+                    advanceCard()
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(flashcards.isEmpty)
+                .onAppear{
+                    timerRunning = true
+                    sessionStartTime = Date()
+                }
             }
             .padding(.horizontal)
         }
@@ -136,40 +230,11 @@ struct FlashcardsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !isFocusMode {
-                Button {
-                    showAddCard = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-                .accessibilityLabel("Add flashcard")
-                
-                Button {
-                    resetAndShuffle()
-                } label: {
-                    Image(systemName: "shuffle")
-                }
-                .accessibilityLabel("Shuffle flashcards")
-                
-                Button(role: .destructive) {
-                    showDeleteAlert = true
-                } label : {
-                    Image(systemName: "trash")
-                }
-                .disabled(flashcards.isEmpty)
-                .accessibilityLabel("Delete current flashcard")
-                
-                Button {
-                    withAnimation {
-                        currentIndex = 0
-                        isFlipped = false
-                        sessionCardsStudied = 0
-                        sessionStartTime = Date()
-                    }
-                } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                }
-                .accessibilityLabel("Restart session")
-                .disabled(flashcards.isEmpty)
+                addButton
+                shuffleButton
+                deleteButton
+                restartButton
+                repeatButton
             }
             
             Button {
@@ -208,6 +273,8 @@ struct FlashcardsView: View {
         flashcards.shuffle()
         currentIndex = 0
         isFlipped = false
+        elapsedSeconds = 0
+        timerRunning = true
         haptic.impactOccurred()
     }
 }
