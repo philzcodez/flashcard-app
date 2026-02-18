@@ -15,6 +15,8 @@ struct FlashcardsView: View {
     @State private var isFlipped = false
     @State private var showDeleteAlert = false
     @State private var isFocusMode = true
+    @State private var sessionStartTime = Date()
+    @State private var sessionCardsStudied = 0
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
@@ -23,6 +25,14 @@ struct FlashcardsView: View {
     //Explicit initializer
     init(flashcards: Binding <[Flashcard]>) {
         self._flashcards = flashcards
+    }
+    
+    private var cardsRemaining: Int {
+        max(totalCards - currentIndex - 1, 0)
+    }
+    
+    private var cardsStudied: Int {
+        currentIndex
     }
     
     private var isLastCard: Bool {
@@ -43,6 +53,19 @@ struct FlashcardsView: View {
             Text("Card \(currentIndex + 1) of \(totalCards)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            
+            HStack {
+                Text("Studied: \(cardsStudied)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Text("Remaing: \(cardsRemaining)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
             
             //Progress bar
             ProgressView(value: progress)
@@ -77,9 +100,12 @@ struct FlashcardsView: View {
                     if isLastCard {
                         resetAndShuffle()
                         haptic.impactOccurred()
+                        sessionCardsStudied = 0
+                        sessionStartTime = Date()
                     } else {
                         currentIndex += 1
                         haptic.impactOccurred()
+                        sessionCardsStudied += 1
                     }
                 }
                 .font(.subheadline)
@@ -131,6 +157,19 @@ struct FlashcardsView: View {
                 }
                 .disabled(flashcards.isEmpty)
                 .accessibilityLabel("Delete current flashcard")
+                
+                Button {
+                    withAnimation {
+                        currentIndex = 0
+                        isFlipped = false
+                        sessionCardsStudied = 0
+                        sessionStartTime = Date()
+                    }
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                }
+                .accessibilityLabel("Restart session")
+                .disabled(flashcards.isEmpty)
             }
             
             Button {
