@@ -11,6 +11,7 @@ import Combine
 
 struct FlashcardsView: View {
     @Binding private var flashcards: [Flashcard]
+    @Binding private var sessions: [StudySession]
     @State private var showAddCard = false
     @State private var currentIndex = 0
     @State private var isFlipped = false
@@ -18,7 +19,6 @@ struct FlashcardsView: View {
     @State private var isFocusMode = true
     @State private var sessionStartTime = Date()
     @State private var sessionCardsStudied = 0
-    @State private var sessions: [StudySession] = []
     @State private var elapsedSeconds = 0
     @State private var timerRunning = false
     
@@ -28,9 +28,11 @@ struct FlashcardsView: View {
     
     let haptic = UIImpactFeedbackGenerator(style: .light)
     
+    
     //Explicit initializer
-    init(flashcards: Binding <[Flashcard]>) {
+    init(flashcards: Binding <[Flashcard]>, sessions: Binding<[StudySession]>) {
         self._flashcards = flashcards
+        self._sessions = sessions
     }
     
     private var cardsRemaining: Int {
@@ -124,6 +126,7 @@ struct FlashcardsView: View {
                 cardsStudied: sessionCardsStudied + 1
             )
             sessions.append(completedSession)
+            FlashcardStore().saveSessions(sessions)
             
             resetAndShuffle()
             sessionCardsStudied = 0
@@ -280,5 +283,8 @@ struct FlashcardsView: View {
 }
 
 #Preview {
-    FlashcardsView(flashcards: .constant(sampleFlashcards))
+    FlashcardsView(
+        flashcards: .constant(sampleFlashcards),
+        sessions: .constant([])
+    )
 }

@@ -7,9 +7,16 @@
 
 import Foundation
 
-struct StudySession: Identifiable, Codable{
-    let id = UUID()
+struct StudySession: Identifiable, Codable, Equatable{
+    let id: UUID
     let startTime: Date
-    var endTime: Date?
+    var endTime: Date
     var cardsStudied: Int
+    
+    init(id: UUID = UUID(), startTime: Date, endTime: Date, cardsStudied: Int) {
+        self.id = id
+        self.startTime = startTime
+        self.endTime = endTime
+        self.cardsStudied = cardsStudied
+    }
 }
