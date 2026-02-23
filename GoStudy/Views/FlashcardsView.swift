@@ -93,7 +93,7 @@ struct FlashcardsView: View {
                 sessionCardsStudied = 0
                 sessionStartTime = Date()
                 elapsedSeconds = 0
-                timerRunning = true
+                timerRunning = false
             }
         } label: {
             Image(systemName: "arrow.counterclockwise")
@@ -118,24 +118,30 @@ struct FlashcardsView: View {
     }
 
     private func advanceCard() {
+        if !timerRunning {
+            timerRunning = true
+            sessionStartTime = Date()
+            elapsedSeconds = 0
+        }
+        
         if isLastCard {
-            //Log session
-            let completedSession = StudySession(
-                startTime: sessionStartTime,
-                endTime: Date(),
-                cardsStudied: sessionCardsStudied + 1
-            )
-            sessions.append(completedSession)
-            FlashcardStore().saveSessions(sessions)
+            let totalCards = sessionCardsStudied + 1
+            let endTime = Date()
+            let duration = endTime.timeIntervalSince(sessionStartTime)
             
+            if totalCards > 0 && duration >= 10 {
+                let completedSession = StudySession(
+                    startTime: sessionStartTime, endTime: endTime, cardsStudied: totalCards
+                )
+                sessions.append(completedSession)
+            }
             resetAndShuffle()
             sessionCardsStudied = 0
             sessionStartTime = Date()
-            haptic.impactOccurred()
         } else {
             currentIndex += 1
-            haptic.impactOccurred()
             sessionCardsStudied += 1
+            haptic.impactOccurred()
         }
     }
     
@@ -206,10 +212,6 @@ struct FlashcardsView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(flashcards.isEmpty)
-                .onAppear{
-                    timerRunning = true
-                    sessionStartTime = Date()
-                }
             }
             .padding(.horizontal)
         }

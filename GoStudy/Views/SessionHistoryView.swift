@@ -12,49 +12,39 @@ struct SessionHistoryView: View {
     @State private var showClearAllAlert = false
     
     var body: some View {
-        VStack {
-            if sessions.isEmpty {
-                Text("No study sessions yet")
-                    .foregroundStyle(.secondary)
-                    .padding()
-            } else {
-                List {
-                    ForEach(sessions) { session in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Studied \(session.cardsStudied) cards")
-                                .font(.headline)
-                            Text(
-                                "\(session.startTime.formatted(date: .abbreviated, time: .shortened)) → " +
-                                "\(session.endTime.formatted(date: .abbreviated, time: .shortened))"
-                            )
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            
-                            Text("Duration: \(Int(session.endTime.timeIntervalSince(session.startTime))) sec")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+        NavigationStack {
+            Group{
+                if sessions.isEmpty {
+                    Text("No study sessions yet")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                } else {
+                    List {
+                        ForEach(sessions) { session in
+                            SessionRow(session: session)
                         }
-                        .padding(.vertical, 6)
+                        .onDelete(perform: deleteSession)
                     }
-                    .onDelete(perform: deleteSession)
+                    .listStyle(.insetGrouped)
                 }
-                .listStyle(.insetGrouped)
             }
-        }
-        .navigationTitle("Session History")
-        .toolbar {
-            Button("Clear All") {
-                showClearAllAlert = true
+            .navigationTitle("Session History")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Clear All") {
+                        showClearAllAlert = true
+                    }
+                    .disabled(sessions.isEmpty)
+                }
             }
-            .disabled(sessions.isEmpty)
-        }
-        .alert("Clear all sessions?", isPresented: $showClearAllAlert) {
-            Button("Clear", role: .destructive) {
-                sessions.removeAll()
+            .alert("Clear all sessions?", isPresented: $showClearAllAlert) {
+                Button("Clear", role: .destructive) {
+                    sessions.removeAll()
+                }
+                Button("Cancel", role: .cancel){}
+            } message: {
+                Text("This cannot be undone.")
             }
-            Button("Cancel", role: .cancel){}
-        } message: {
-            Text("This cannot be undone.")
         }
     }
 
@@ -63,17 +53,46 @@ struct SessionHistoryView: View {
     }
 }
 
+private struct SessionRow: View {
+    let session: StudySession
+
+    private var studiedText: String { "Studied \(session.cardsStudied) cards" }
+    private var durationText: String { "Duration \(session.durationString)" }
+    private var timeRangeText: String {
+        let start = session.startTime.formatted(date: .abbreviated, time: .shortened)
+        let end = session.endTime.formatted(date: .omitted, time: .shortened)
+        return "\(start) → \(end)"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(studiedText)
+                .font(.headline)
+
+            Text(durationText)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text(timeRangeText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
 #Preview {
     SessionHistoryView(sessions: .constant([
         StudySession(
-            startTime: Date().addingTimeInterval(-3600),
+            startTime: Date().addingTimeInterval(-1800),
             endTime: Date(),
-            cardsStudied: 5
+            cardsStudied: 6
         ),
         StudySession(
-            startTime: Date().addingTimeInterval(-7200),
-            endTime: Date().addingTimeInterval(-3600),
-            cardsStudied: 3
+            startTime: Date().addingTimeInterval(-3600),
+            endTime: Date().addingTimeInterval(-1800),
+            cardsStudied: 4
         )
     ]))
 }
+

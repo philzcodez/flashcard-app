@@ -13,6 +13,18 @@ struct StudySession: Identifiable, Codable, Equatable{
     var endTime: Date
     var cardsStudied: Int
     
+    var durationSeconds: Int {
+        Int(endTime.timeIntervalSince(startTime))
+    }
+    
+    var durationString: String {
+        let minutes = durationSeconds / 60
+        let seconds = durationSeconds % 60
+        return minutes > 0
+            ? "\(minutes)m \(seconds)s"
+            : "\(seconds)s"
+    }
+    
     init(id: UUID = UUID(), startTime: Date, endTime: Date, cardsStudied: Int) {
         self.id = id
         self.startTime = startTime
