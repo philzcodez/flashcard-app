@@ -54,8 +54,12 @@ struct FlashcardRow: View {
         .padding()
         .frame(maxWidth: 500, minHeight: 250)
         .background(.regularMaterial)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.primary.opacity((0.08)))
+        )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
     }
     
     private var backView: some View {
@@ -69,8 +73,12 @@ struct FlashcardRow: View {
         .padding()
         .frame(maxWidth: 500, minHeight: 250)
         .background(.regularMaterial)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.primary.opacity((0.08)))
+        )
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
     }
     
@@ -94,8 +102,12 @@ struct FlashcardRow: View {
         .frame(maxWidth: 500)
         .frame(height: 260)
         .background(.ultraThinMaterial)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.primary.opacity((0.08)))
+        )
         .cornerRadius(20)
-        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
     }
     
 }
