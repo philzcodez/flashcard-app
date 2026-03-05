@@ -33,7 +33,6 @@ struct HomeView: View {
                 .buttonStyle(.borderedProminent)
             }
             .padding()
-            .navigationTitle("Home")
             .onAppear {
                 flashcards = store.load()
                 sessions = store.loadSessions()
