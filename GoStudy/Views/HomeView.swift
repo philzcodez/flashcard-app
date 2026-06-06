@@ -1,3 +1,5 @@
+//  Made by Phillip Bilenko, for a health project.
+
 import SwiftUI
 
 struct HomeView: View {
